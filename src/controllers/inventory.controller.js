@@ -210,7 +210,7 @@ exports.getInventory = async (req, res) => {
   
   try {
     // If admin and userId query provided, use it. Otherwise if not admin, force their own userId.
-    const targetUserId = isReqAdmin ? (userId ? parseInt(userId) : undefined) : req.user.userId;
+    const targetUserId = isReqAdmin ? (userId || undefined) : req.user.userId;
     const where = targetUserId ? { user_id: targetUserId } : {};
 
     const inventory = await prisma.inventory.findMany({
@@ -235,7 +235,7 @@ exports.getProducts = async (req, res) => {
   const isReqAdmin = req.user.role === 'admin';
 
   try {
-    const targetUserId = isReqAdmin ? (userId ? parseInt(userId) : undefined) : req.user.userId;
+    const targetUserId = isReqAdmin ? (userId || undefined) : req.user.userId;
     const where = targetUserId ? { user_id: targetUserId } : {};
 
     const products = await prisma.product.findMany({
@@ -259,7 +259,7 @@ exports.addProduct = async (req, res) => {
   const isReqAdmin = req.user.role === 'admin';
 
   // Regular users can only add products to their own account
-  const targetUserId = isReqAdmin ? parseInt(userId) : req.user.userId;
+  const targetUserId = isReqAdmin ? userId : req.user.userId;
 
   if (!barcode || !targetUserId) {
     return res.status(400).json({ error: "Barcode and targetUserId are required" });
@@ -306,7 +306,7 @@ exports.getStockLogs = async (req, res) => {
   const isReqAdmin = req.user.role === 'admin';
 
   try {
-    const targetUserId = isReqAdmin ? (userId ? parseInt(userId) : undefined) : req.user.userId;
+    const targetUserId = isReqAdmin ? (userId || undefined) : req.user.userId;
     const where = targetUserId ? { user_id: targetUserId } : {};
 
     const logs = await prisma.stockLog.findMany({

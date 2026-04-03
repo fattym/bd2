@@ -3,60 +3,64 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id         Int         @id @default(autoincrement())
+  id         String      @id @default(auto()) @map("_id") @db.ObjectId
   email      String      @unique
   name       String
   password   String?
   region     String?
   latitude   Float?
   longitude  Float?
-  products   Product[]
   inventory  Inventory[]
+  products   Product[]
   stock_logs StockLog[]
 
   @@map("users")
 }
 
 model Product {
-  id         Int        @id @default(autoincrement())
+  id         String     @id @default(auto()) @map("_id") @db.ObjectId
   barcode    String
   name       String?
-  user_id    Int
-  user       User       @relation(fields: [user_id], references: [id])
+  user_id    String     @db.ObjectId
   inventory  Inventory?
+  user       User       @relation(fields: [user_id], references: [id])
   stock_logs StockLog[]
 
   @@unique([barcode, user_id])
+  @@index([user_id])
   @@map("products")
 }
 
 model Inventory {
-  id               Int      @id @default(autoincrement())
-  product_id       Int      @unique
-  user_id          Int
-  user             User     @relation(fields: [user_id], references: [id])
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  product_id       String   @unique @db.ObjectId
+  user_id          String   @db.ObjectId
   current_quantity Int      @default(0)
   last_updated     DateTime @default(now())
   product          Product  @relation(fields: [product_id], references: [id])
+  user             User     @relation(fields: [user_id], references: [id])
 
+  @@index([user_id])
   @@map("inventory")
 }
 
 model StockLog {
-  id            Int      @id @default(autoincrement())
-  product_id    Int
-  user_id       Int
-  user          User     @relation(fields: [user_id], references: [id])
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  product_id    String   @db.ObjectId
+  user_id       String   @db.ObjectId
   change_amount Int
   reason        String
   staff_id      String
   timestamp     DateTime @default(now())
   product       Product  @relation(fields: [product_id], references: [id])
+  user          User     @relation(fields: [user_id], references: [id])
 
+  @@index([product_id])
+  @@index([user_id])
   @@map("stock_logs")
 }
