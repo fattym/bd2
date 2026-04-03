@@ -5,6 +5,7 @@ const prisma = new PrismaClient();
 const app = express();
 const inventoryController = require('./src/controllers/inventory.controller');
 const { authenticateToken } = require('./src/middleware/auth.middleware');
+const upload = require('./src/middleware/multer.middleware');
 
 app.use(cors());
 app.use(express.json());
@@ -27,7 +28,7 @@ app.use('/sync', authenticateToken);
 app.get('/api/users', inventoryController.getUsers);
 app.get('/api/inventory', inventoryController.getInventory);
 app.get('/api/products', inventoryController.getProducts);
-app.post('/api/products', inventoryController.addProduct);
+app.post('/api/products', upload.single('image'), inventoryController.addProduct);
 app.get('/api/stock-logs', inventoryController.getStockLogs);
 app.get('/api/analysis', inventoryController.getAnalysis);
 

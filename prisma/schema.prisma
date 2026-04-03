@@ -26,6 +26,7 @@ model Product {
   id         String     @id @default(auto()) @map("_id") @db.ObjectId
   barcode    String
   name       String?
+  image_url  String?
   user_id    String     @db.ObjectId
   inventory  Inventory?
   user       User       @relation(fields: [user_id], references: [id])

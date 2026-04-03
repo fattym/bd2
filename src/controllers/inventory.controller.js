@@ -1,6 +1,7 @@
 const { PrismaClient } = require('@prisma/client');
 const { OAuth2Client } = require('google-auth-library');
 const jwt = require('jsonwebtoken');
+const cloudinary = require('../utils/cloudinary');
 const prisma = new PrismaClient();
 const googleClient = new OAuth2Client();
 
@@ -266,17 +267,35 @@ exports.addProduct = async (req, res) => {
   }
 
   try {
+    let imageUrl = null;
+
+    // 1. Upload image to Cloudinary if file exists
+    if (req.file) {
+      const result = await new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          { folder: 'retail_products' },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        );
+        uploadStream.end(req.file.buffer);
+      });
+      imageUrl = result.secure_url;
+    }
+
     const result = await prisma.$transaction(async (tx) => {
-      // 1. Create product
+      // 2. Create product
       const product = await tx.product.create({
         data: {
           barcode,
           name,
+          image_url: imageUrl,
           user_id: targetUserId
         }
       });
 
-      // 2. Initialize inventory
+      // 3. Initialize inventory
       await tx.inventory.create({
         data: {
           product_id: product.id,
