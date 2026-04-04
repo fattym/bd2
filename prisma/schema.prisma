@@ -51,15 +51,16 @@ model Inventory {
 }
 
 model StockLog {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  product_id    String   @db.ObjectId
-  user_id       String   @db.ObjectId
-  change_amount Int
-  reason        String
-  staff_id      String
-  timestamp     DateTime @default(now())
-  product       Product  @relation(fields: [product_id], references: [id])
-  user          User     @relation(fields: [user_id], references: [id])
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  product_id     String   @db.ObjectId
+  user_id        String   @db.ObjectId
+  change_amount  Int
+  reason         String
+  payment_method String?
+  staff_id       String
+  timestamp      DateTime @default(now())
+  product        Product  @relation(fields: [product_id], references: [id])
+  user           User     @relation(fields: [user_id], references: [id])
 
   @@index([product_id])
   @@index([user_id])

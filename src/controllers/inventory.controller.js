@@ -136,7 +136,12 @@ exports.syncInventory = async (req, res) => {
   }
 
   // Use userId from authenticated token
-  const targetUserId = req.user?.userId;
+  let targetUserId = req.user?.userId;
+
+  // Allow admin to specify targetUserId via query parameter
+  if (req.user?.role === 'admin' && req.query.adminTargetUserId) {
+    targetUserId = req.query.adminTargetUserId;
+  }
 
   if (!targetUserId) {
     return res.status(401).json({ error: "Unauthorized. User ID missing from token." });
@@ -178,6 +183,7 @@ exports.syncInventory = async (req, res) => {
               user_id: targetUserId,
               change_amount: update.change,
               reason: update.change < 0 ? 'sale' : 'restock',
+              payment_method: update.paymentMethod || null,
               staff_id: update.staffId,
               timestamp: new Date(update.timestamp)
             }
@@ -378,6 +384,7 @@ exports.getAnalysis = async (req, res) => {
       return {
         id: `${item.product_id}-${item.user_id}`,
         productName: item.product.name,
+        image_url: item.product.image_url,
         barcode: item.product.barcode,
         shopName: item.user.name,
         region: item.user.region,
@@ -437,6 +444,11 @@ exports.getUsers = async (req, res) => {
   try {
     const users = await prisma.user.findMany({
       include: {
+        products: {
+          include: {
+            inventory: true
+          }
+        },
         _count: {
           select: { products: true }
         }
